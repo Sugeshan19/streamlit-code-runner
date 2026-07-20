@@ -1,189 +1,175 @@
 import streamlit as st
+import ast
 
-st.set_page_config(
-    page_title="Python Tuple Visualizer",
-    page_icon="📦",
-    layout="wide"
-)
+st.set_page_config(page_title="Python Dictionary Visualizer", page_icon="📘", layout="wide")
 
-st.title("📦 Python Tuple  Visualizer")
+st.title("📘 Python Dictionary Data Type Visualizer")
 
 st.markdown("""
-Learn Python **Tuple** interactively.
-
-A **Tuple** is:
-- ✅ Ordered
-- ✅ Immutable (Cannot be changed)
-- ✅ Allows duplicate values
-- ✅ Can contain different data types
+A **Dictionary** is:
+- ✅ Ordered (Python 3.7+)
+- ✅ Mutable
+- ✅ Stores data as Key : Value pairs
+- ✅ Keys are unique
+- ✅ Values can be duplicated
 """)
 
-# Sidebar Input
-st.sidebar.header("Create a Tuple")
+st.sidebar.header("Create a Dictionary")
 
-user_input = st.sidebar.text_input(
-    "Enter elements separated by commas",
-    "10,20,30,40,50"
-)
+default_dict = "{'Name':'Alice','Age':25,'City':'Chennai'}"
 
-elements = [x.strip() for x in user_input.split(",") if x.strip()]
-my_tuple = tuple(elements)
+user_input = st.sidebar.text_area("Enter a Python Dictionary", default_dict)
 
-st.subheader("Current Tuple")
-st.code(str(my_tuple))
-st.write("Length:", len(my_tuple))
+try:
+    my_dict = ast.literal_eval(user_input)
+    if not isinstance(my_dict, dict):
+        st.error("Please enter a valid dictionary.")
+        st.stop()
+except:
+    st.error("Invalid dictionary format.")
+    st.stop()
 
-# Visualization
-st.subheader("Tuple Visualization")
+st.subheader("Current Dictionary")
+st.code(str(my_dict))
 
-if len(my_tuple) > 0:
-    cols = st.columns(len(my_tuple))
-    for i, value in enumerate(my_tuple):
-        cols[i].metric(f"Index {i}", value)
+st.subheader("Dictionary Visualization")
 
-# Operations
+cols = st.columns(2)
+cols[0].write("### Keys")
+for k in my_dict.keys():
+    cols[0].success(k)
+
+cols[1].write("### Values")
+for v in my_dict.values():
+    cols[1].info(v)
+
 operation = st.selectbox(
-    "Choose Tuple Operation",
+    "Choose Dictionary Operation",
     [
         "Length",
-        "Access Element",
-        "Slicing",
-        "Count",
-        "Index",
-        "Concatenation",
-        "Repetition",
+        "Access Value",
+        "Add / Update",
+        "Remove Key",
+        "Keys",
+        "Values",
+        "Items",
         "Membership",
         "Iteration",
-        "Min and Max",
-        "Sorting",
-        "Convert to List",
-        "Nested Tuple"
+        "Copy",
+        "Clear",
+        "Nested Dictionary",
+        "Dictionary Comprehension"
     ]
 )
 
 st.divider()
 
 if operation == "Length":
-    st.success(f"Length = {len(my_tuple)}")
+    st.success(f"Length = {len(my_dict)}")
 
-elif operation == "Access Element":
-    if len(my_tuple) > 0:
-        idx = st.number_input(
-            "Enter Index",
-            min_value=0,
-            max_value=len(my_tuple) - 1,
-            value=0
-        )
-        st.info(f"Element = {my_tuple[idx]}")
-    else:
-        st.warning("Tuple is empty.")
+elif operation == "Access Value":
+    key = st.text_input("Enter Key")
+    if st.button("Get Value"):
+        if key in my_dict:
+            st.success(my_dict[key])
+        else:
+            st.error("Key not found.")
 
-elif operation == "Slicing":
-    start = st.number_input("Start", value=0)
-    end = st.number_input("End", value=len(my_tuple))
-    st.code(str(my_tuple[int(start):int(end)]))
-
-elif operation == "Count":
+elif operation == "Add / Update":
+    key = st.text_input("Key")
     value = st.text_input("Value")
-    if st.button("Count"):
-        st.success(my_tuple.count(value))
+    if st.button("Add / Update"):
+        new_dict = my_dict.copy()
+        new_dict[key] = value
+        st.code(str(new_dict))
 
-elif operation == "Index":
-    value = st.text_input("Value")
-    if st.button("Find Index"):
-        try:
-            st.success(my_tuple.index(value))
-        except ValueError:
-            st.error("Value not found.")
+elif operation == "Remove Key":
+    key = st.text_input("Key to Remove")
+    if st.button("Remove"):
+        new_dict = my_dict.copy()
+        if key in new_dict:
+            new_dict.pop(key)
+            st.code(str(new_dict))
+        else:
+            st.error("Key not found.")
 
-elif operation == "Concatenation":
-    new = st.text_input("Second Tuple", "60,70,80")
-    second = tuple(x.strip() for x in new.split(",") if x.strip())
-    st.write("Second Tuple")
-    st.code(str(second))
-    st.write("Result")
-    st.code(str(my_tuple + second))
+elif operation == "Keys":
+    st.code(str(list(my_dict.keys())))
 
-elif operation == "Repetition":
-    n = st.slider("Times", 1, 10, 2)
-    st.code(str(my_tuple * n))
+elif operation == "Values":
+    st.code(str(list(my_dict.values())))
+
+elif operation == "Items":
+    st.code(str(list(my_dict.items())))
 
 elif operation == "Membership":
-    value = st.text_input("Element")
-    if value in my_tuple:
-        st.success(f"{value} exists in the tuple.")
+    key = st.text_input("Enter Key")
+    if key in my_dict:
+        st.success(f"{key} exists.")
     else:
-        st.error(f"{value} not found.")
+        st.error(f"{key} not found.")
 
 elif operation == "Iteration":
-    st.write("Traversing Tuple")
-    for i, value in enumerate(my_tuple):
-        st.write(f"Index {i} ➜ {value}")
+    for k, v in my_dict.items():
+        st.write(f"{k} ➜ {v}")
 
-elif operation == "Min and Max":
-    try:
-        nums = tuple(map(float, my_tuple))
-        st.success(f"Minimum = {min(nums)}")
-        st.success(f"Maximum = {max(nums)}")
-    except ValueError:
-        st.error("Works only with numeric tuples.")
+elif operation == "Copy":
+    st.code(str(my_dict.copy()))
 
-elif operation == "Sorting":
-    try:
-        nums = tuple(map(float, my_tuple))
-        st.code(str(tuple(sorted(nums))))
-    except ValueError:
-        st.code(str(tuple(sorted(my_tuple))))
+elif operation == "Clear":
+    st.code(str(my_dict.copy().clear()))
 
-elif operation == "Convert to List":
-    st.code(str(list(my_tuple)))
-
-elif operation == "Nested Tuple":
-    nested = (
-        my_tuple,
-        ("A", "B", "C"),
-        (100, 200)
-    )
+elif operation == "Nested Dictionary":
+    nested = {
+        "Student": my_dict,
+        "Marks": {"Math": 90, "Science": 95}
+    }
     st.code(str(nested))
-    st.write("Access nested element:")
-    st.success(nested[1][1])
+    st.success(nested["Marks"]["Science"])
+
+elif operation == "Dictionary Comprehension":
+    comp = {x: x*x for x in range(1, 6)}
+    st.code(str(comp))
 
 st.divider()
 
-st.subheader("Tuple Properties")
+st.subheader("Dictionary Properties")
 
 st.table({
     "Property": [
         "Ordered",
         "Mutable",
-        "Duplicates",
-        "Indexing",
-        "Slicing",
-        "Hashable"
+        "Duplicate Keys",
+        "Duplicate Values",
+        "Indexed",
+        "Key-Value Pair"
     ],
     "Value": [
         "Yes",
+        "Yes",
         "No",
         "Yes",
-        "Yes",
-        "Yes",
-        "Yes (if immutable elements)"
+        "Access using Keys",
+        "Yes"
     ]
 })
 
 st.divider()
 
-st.subheader("Built-in Tuple Methods")
+st.subheader("Common Dictionary Methods")
 
 st.code("""
-tuple.count(x)
-tuple.index(x)
-len(tuple)
-min(tuple)
-max(tuple)
-sorted(tuple)
-tuple + tuple
-tuple * n
+dict.get(key)
+dict.keys()
+dict.values()
+dict.items()
+dict.update()
+dict.pop(key)
+dict.popitem()
+dict.clear()
+dict.copy()
+dict.setdefault()
+dict.fromkeys()
 """)
 
 st.divider()
@@ -193,19 +179,18 @@ st.subheader("Quick Quiz")
 question = st.radio(
     "Which statement is TRUE?",
     [
-        "Tuple is mutable",
-        "Tuple uses [] brackets",
-        "Tuple is immutable",
-        "Tuple cannot store duplicates"
+        "Dictionary keys can be duplicated",
+        "Dictionary is immutable",
+        "Dictionary stores key-value pairs",
+        "Dictionary uses () brackets"
     ]
 )
 
 if st.button("Check Answer"):
-    if question == "Tuple is immutable":
+    if question == "Dictionary stores key-value pairs":
         st.success("✅ Correct!")
     else:
         st.error("❌ Incorrect.")
 
 st.divider()
-st.caption("Python Tuple Interactive Visualizer using Streamlit")
-
+st.caption("Python Dictionary Interactive Visualizer using Streamlit")
